@@ -475,11 +475,23 @@ jobs:
 
 # TODO everything from here on is stable/unstable release only
 
-# TODO i got lazy here
+  # all other release jobs should be based on this
+  release-precondition-check:
+    if: |
+      github.event_name == 'push'
+      && (github.ref == 'refs/heads/stable'
+      || github.ref == 'refs/heads/unstable')
+    needs: [build, test-postman-sqlite, test-postman-mysql, test-postman-postgres]
+    runs-on: ubuntu-latest
+    steps:
+      - name: dummy operation
+      - run: |
+          :
+
+  # TODO i got lazy here
 
   docker-release:
-    if: ${{ env.is_release }}
-    needs: [build, test-postman-sqlite, test-postman-mysql, test-postman-postgres]
+    needs: release-precondition-check
     runs-on: ubuntu-latest
 
     steps:
