@@ -7,6 +7,19 @@ on:
     paths-ignore:
       - "**.md"
 
+env:
+  is-stable: |
+    github.event_name == 'push'
+    && github.ref == 'refs/heads/stable'
+  is-unstable: |
+    github.event_name == 'push'
+    && github.ref == 'refs/heads/unstable'
+  # this is an alias for is-stable || is-unstable
+  is-release: |
+    github.event_name == 'push'
+    && (github.ref == 'refs/heads/stable'
+    || github.ref == 'refs/heads/unstable')
+
 jobs:
   frontend:
     runs-on: ubuntu-latest
@@ -466,7 +479,7 @@ jobs:
 
   docker-release:
     needs: [build, test-postman-sqlite, test-postman-mysql, test-postman-postgres]
-    runs-on: [self-hosted, linux, aboutcher-hosted, rocky8]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Statping Repo
