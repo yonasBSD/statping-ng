@@ -94,8 +94,8 @@ jobs:
         include:
           - platform: darwin
             arch: amd64
-          - platform: windows
-            arch: amd64
+#          - platform: windows
+#            arch: amd64
 
     steps:
       - uses: actions/checkout@v2
