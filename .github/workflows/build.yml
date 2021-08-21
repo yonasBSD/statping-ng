@@ -195,6 +195,7 @@ jobs:
           name: statping-${{ matrix.platform }}-${{ matrix.arch }}
           path: ./build
 
+        # TODO this should be its own job - DONT CREATE A RELEASE ON DEV
       - name: Upload Releases
         id: upload-assets
         uses: softprops/action-gh-release@v1
@@ -217,6 +218,8 @@ jobs:
 
   test:
     needs: frontend
+    # temporarily disabled
+    if: "false"
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -514,6 +517,8 @@ jobs:
         # TODO the cache keys for stable/unstable were different here, but that doesn't really matter
         # TODO use docker metadata action instead of this (don't refer to makefile for docker commands at all)
         # TODO consider creating builds for dev (not really needed?), if so: not multiarch
+        # TODO build docker image before releasing (in parallel to build), use same cache here and there.
+        #      --> don't push from build step so everything can be released (somewhat) simultaneously
       - name: Cache Docker layers
         uses: actions/cache@v2
         id: buildx-docker-master
