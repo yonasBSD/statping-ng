@@ -478,6 +478,7 @@ jobs:
 # TODO i got lazy here
 
   docker-release:
+    if: ${{ env.is-release }}
     needs: [build, test-postman-sqlite, test-postman-mysql, test-postman-postgres]
     runs-on: ubuntu-latest
 
