@@ -8,14 +8,14 @@ on:
       - "**.md"
 
 env:
-  is-stable: |
+  is_stable: |
     github.event_name == 'push'
     && github.ref == 'refs/heads/stable'
-  is-unstable: |
+  is_unstable: |
     github.event_name == 'push'
     && github.ref == 'refs/heads/unstable'
   # this is an alias for is-stable || is-unstable
-  is-release: |
+  is_release: |
     github.event_name == 'push'
     && (github.ref == 'refs/heads/stable'
     || github.ref == 'refs/heads/unstable')
@@ -478,7 +478,7 @@ jobs:
 # TODO i got lazy here
 
   docker-release:
-    if: ${{ env.is-release }}
+    if: ${{ env.is_release }}
     needs: [build, test-postman-sqlite, test-postman-mysql, test-postman-postgres]
     runs-on: ubuntu-latest
 
