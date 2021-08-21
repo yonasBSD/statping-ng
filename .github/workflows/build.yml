@@ -485,7 +485,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: dummy operation
-      - run: |
+        run: |
           :
 
   # TODO i got lazy here
