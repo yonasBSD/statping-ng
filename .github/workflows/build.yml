@@ -134,7 +134,7 @@ jobs:
         shell: bash
 
       - name: Set Windows Build Flags
-        if: matrix.platform == 'windows' &&
+        if: matrix.platform == 'windows'
         run: |
           echo "BUILD_FLAGS=-extldflags -static" >> $GITHUB_ENV
           echo "XGO_TAGS=netgo osusergo sqlite_omit_load_extension" >> $GITHUB_ENV
@@ -170,7 +170,7 @@ jobs:
           echo "compressed=statping-linux-${{ matrix.arch }}.tar.gz" >> $GITHUB_ENV
 
       - name: Compress Windows Builds
-        if: matrix.platform == 'windows' &&
+        if: matrix.platform == 'windows'
         run: |
           cd build
           mv statping-windows-4.0-${{ matrix.arch }}.exe statping.exe
