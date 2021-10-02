@@ -44,9 +44,9 @@ RUN chmod a+x statping && mv statping /go/bin/statping
 # /root/sassc/bin/sassc - sass binary
 # /statping - Vue frontend (from frontend)
 
-ARG BUILDPLATFORM
 # Statping main Docker image that contains all required libraries
 FROM alpine:latest
+
 RUN apk --no-cache add libgcc libstdc++ ca-certificates curl jq && update-ca-certificates
 
 COPY --from=backend /go/bin/statping /usr/local/bin/
