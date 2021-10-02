@@ -3,9 +3,10 @@ on:
   push:
     paths-ignore:
       - "**.md"
-  pull_request:
-    paths-ignore:
-      - "**.md"
+# TODO turn PR trigger back on
+#   pull_request:
+#     paths-ignore:
+#       - "**.md"
 
 env:
   is_stable: |
@@ -85,19 +86,19 @@ jobs:
           rm -rf source.tar.gz
 
   build:
-    needs: [frontend, test-postman-sqlite, test-postman-mysql, test-postman-postgres]
+    needs: [ frontend, test-postman-sqlite, test-postman-mysql, test-postman-postgres ]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [linux]
-        arch: [386, amd64, arm-7, arm-6, arm64]
+        platform: [ linux ]
+        arch: [ 386, amd64, arm-7, arm-6, arm64 ]
         include:
           - platform: darwin
             arch: 386
           - platform: darwin
             arch: amd64
           - platform: windows
-            arch: [amd64, 386]
+            arch: [ amd64, 386 ]
 
     steps:
       - uses: actions/checkout@v2
@@ -492,7 +493,7 @@ jobs:
           timeoutRequest: 30000
           delayRequest: 600
 
-# TODO everything from here on is stable/unstable release only
+  # TODO everything from here on is stable/unstable release only
 
   # all other release jobs should be based on this
   release-precondition-check:
@@ -500,7 +501,7 @@ jobs:
       github.event_name == 'push'
       && (github.ref == 'refs/heads/stable'
       || github.ref == 'refs/heads/unstable')
-    needs: [build, test-postman-sqlite, test-postman-mysql, test-postman-postgres]
+    needs: [ build, test-postman-sqlite, test-postman-mysql, test-postman-postgres ]
     runs-on: ubuntu-latest
     steps:
       - name: dummy operation
