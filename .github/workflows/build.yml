@@ -98,7 +98,9 @@ jobs:
           - platform: darwin
             arch: amd64
           - platform: windows
-            arch: [ amd64, 386 ]
+            arch: amd64
+          - platform: windows
+            arch: 386
 
     steps:
       - uses: actions/checkout@v2
