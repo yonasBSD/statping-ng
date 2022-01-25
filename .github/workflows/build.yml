@@ -201,21 +201,6 @@ jobs:
           name: statping-${{ matrix.platform }}-${{ matrix.arch }}
           path: ./build
 
-        # TODO this should be its own job - DONT CREATE A RELEASE ON DEV
-      - name: Upload Releases
-        id: upload-assets
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ env.VERSION }}
-        with:
-          # TODO add "dev-" prefix for unstable
-          # TODO only do this for stable/unstable pushes
-          tag_name: v${{ env.VERSION }}
-          draft: true
-          prerelease: true
-          files: build/${{ env.compressed }}
-
       - name: Upload Compiled Binaries to S3
         # temporarily disabled
         if: "false"
@@ -486,10 +471,14 @@ jobs:
 
   # all other release jobs should be based on this
   release-precondition-check:
+    # only run release jobs on push to stable/unstable
+    # sadly, you can't use ${{ env.is_release }} here
     if: |
+      success() && (
       github.event_name == 'push'
       && (github.ref == 'refs/heads/stable'
       || github.ref == 'refs/heads/unstable')
+      )
     needs: [ build, test-postman-sqlite, test-postman-mysql, test-postman-postgres ]
     runs-on: ubuntu-latest
     steps:
@@ -497,7 +486,35 @@ jobs:
         run: |
           :
 
-  # TODO i got lazy here
+  github-release:
+    runs-on: ubuntu-latest
+    needs: release-precondition-check
+    steps:
+      # TODO read version somewhere *once* and use output globally
+      - name: Checkout Statping Repo
+        uses: actions/checkout@v2
+      - name: Setting ENV's
+        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+      - name: Download job artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: downloads
+      - name: Accumulate files
+        run: |
+          mkdir files
+          find downloads -type f -exec cp {} files \;
+      - name: Upload Releases
+        id: upload-assets
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}
+        with:
+          # add "dev-" prefix for unstable releases
+          tag_name: ${{ env.is_unstable && 'dev-' || '' }}v${{ env.VERSION }}
+          draft: true
+          prerelease: true
+          files: files/statping-*
 
   docker-release:
     needs: release-precondition-check
