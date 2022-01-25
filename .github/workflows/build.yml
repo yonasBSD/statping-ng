@@ -22,8 +22,21 @@ env:
     || github.ref == 'refs/heads/unstable')
 
 jobs:
+  data:
+    # this job collects general variables and inputs for later use.
+    # not all of them might be needed but having them in a central place is more helpful than 100% efficiency.
+    # also, the name is intentionally short to make later references shorter.
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: get version
+        id: version
+        run: echo "::set-output name=version::$(cat version.txt)"
   frontend:
     runs-on: ubuntu-latest
+    needs: data
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -33,10 +46,9 @@ jobs:
         with:
           node-version: 12.18.2
 
-      - name: Set Version
+      - name: Add go/bin to path
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
         shell: bash
 
       - name: Install Global Dependencies
@@ -54,7 +66,7 @@ jobs:
 
       - name: Build Frontend Statping
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.data.outputs.version }}
           COMMIT: ${{ github.sha }}
           MJML_APP: ${{ secrets.MJML_APP }}
           MJML_PRIVATE: ${{ secrets.MJML_PRIVATE }}
@@ -86,7 +98,7 @@ jobs:
           rm -rf source.tar.gz
 
   build:
-    needs: frontend
+    needs: [ data, frontend ]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -121,11 +133,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - name: Add GOBIN to PATH
-        run: |
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
-        shell: bash
-
       - name: Set Linux Build Flags
         if: matrix.platform == 'linux'
         run: |
@@ -149,7 +156,7 @@ jobs:
       - name: Build ${{ matrix.platform }}/${{ matrix.arch }}
         uses: crazy-max/ghaction-xgo@v1
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.data.outputs.version }}
           COMMIT: ${{ github.sha }}
         with:
           xgo_version: latest
@@ -163,7 +170,7 @@ jobs:
           pkg: cmd
           buildmode: pie
           tags: ${{ env.XGO_TAGS }}
-          ldflags: -s -w -X main.VERSION=${{ env.VERSION }} -X main.COMMIT=${{ env.COMMIT }} ${{ env.BUILD_FLAGS }}
+          ldflags: -s -w -X main.VERSION=${{ needs.data.outputs.version }} -X main.COMMIT=${{ env.COMMIT }} ${{ env.BUILD_FLAGS }}
 
       - name: Compress Linux Builds
         if: matrix.platform == 'linux'
@@ -208,7 +215,7 @@ jobs:
           aws s3 cp build/${{ env.compressed }} s3://assets.statping.com/commit/${{ github.sha }}/
 
   test:
-    needs: frontend
+    needs: [ data, frontend ]
     # temporarily disabled
     if: "false"
     runs-on: ubuntu-latest
@@ -248,7 +255,6 @@ jobs:
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
           echo "/opt/hostedtoolcache/node/12.18.2/x64/bin" >> $GITHUB_PATH
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
         shell: bash
 
       - name: Download Compiled Frontend (rice-box.go)
@@ -259,7 +265,7 @@ jobs:
 
       - name: Install Statping
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.data.outputs.version }}
           COMMIT: ${{ github.sha }}
         run: |
           make build certs
@@ -271,7 +277,7 @@ jobs:
           go get gotest.tools/gotestsum
           gotestsum --no-summary=skipped --format testname -- -covermode=count -coverprofile=coverage.out -p=1 ./...
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.data.outputs.version }}
           COMMIT: ${{ github.sha }}
           DB_CONN: sqlite3
           STATPING_DIR: ${{ github.workspace }}
@@ -314,7 +320,7 @@ jobs:
           COVERALLS: ${{ secrets.COVERALLS }}
 
   test-postman-sqlite:
-    needs: frontend
+    needs: [ data, frontend ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -326,7 +332,6 @@ jobs:
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
           echo "/opt/hostedtoolcache/node/12.18.2/x64/bin" >> $GITHUB_PATH
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
         shell: bash
 
       - name: Download Compiled Frontend (rice-box.go)
@@ -337,7 +342,7 @@ jobs:
 
       - name: Install Statping
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.data.outputs.version }}
           COMMIT: ${{ github.sha }}
         run: |
           make build
@@ -357,7 +362,7 @@ jobs:
           delayRequest: 600
 
   test-postman-mysql:
-    needs: frontend
+    needs: [ data, frontend ]
     runs-on: ubuntu-latest
 
     services:
@@ -380,7 +385,6 @@ jobs:
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
           echo "/opt/hostedtoolcache/node/12.18.2/x64/bin" >> $GITHUB_PATH
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
         shell: bash
 
       - name: Download Compiled Frontend (rice-box.go)
@@ -391,7 +395,7 @@ jobs:
 
       - name: Install Statping
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.data.outputs.version }}
           COMMIT: ${{ github.sha }}
           MJML_APP: ${{ secrets.MJML_APP }}
           MJML_PRIVATE: ${{ secrets.MJML_PRIVATE }}
@@ -413,7 +417,7 @@ jobs:
           delayRequest: 600
 
   test-postman-postgres:
-    needs: frontend
+    needs: [ data, frontend ]
     runs-on: ubuntu-latest
 
     services:
@@ -437,7 +441,6 @@ jobs:
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
           echo "/opt/hostedtoolcache/node/12.18.2/x64/bin" >> $GITHUB_PATH
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
         shell: bash
 
       - name: Download Compiled Frontend (rice-box.go)
@@ -448,7 +451,7 @@ jobs:
 
       - name: Install Statping
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.data.outputs.version }}
           COMMIT: ${{ github.sha }}
         run: |
           make build
@@ -479,7 +482,7 @@ jobs:
       && (github.ref == 'refs/heads/stable'
       || github.ref == 'refs/heads/unstable')
       )
-    needs: [ build, test-postman-sqlite, test-postman-mysql, test-postman-postgres ]
+    needs: [ data, build, test-postman-sqlite, test-postman-mysql, test-postman-postgres ]
     runs-on: ubuntu-latest
     steps:
       - name: dummy operation
@@ -488,13 +491,9 @@ jobs:
 
   github-release:
     runs-on: ubuntu-latest
-    needs: release-precondition-check
+    needs: [ data, release-precondition-check ]
     steps:
       # TODO read version somewhere *once* and use output globally
-      - name: Checkout Statping Repo
-        uses: actions/checkout@v2
-      - name: Setting ENV's
-        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
       - name: Download job artifacts
         uses: actions/download-artifact@v2
         with:
@@ -508,25 +507,21 @@ jobs:
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.data.outputs.version }}
         with:
           # add "dev-" prefix for unstable releases
-          tag_name: ${{ env.is_unstable && 'dev-' || '' }}v${{ env.VERSION }}
+          tag_name: ${{ env.is_unstable && 'dev-' || '' }}v${{ needs.data.outputs.version }}
           draft: true
           prerelease: true
           files: files/statping-*
 
   docker-release:
-    needs: release-precondition-check
+    needs: [ data, release-precondition-check ]
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Statping Repo
         uses: actions/checkout@v2
-
-      - name: Setting ENV's
-        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
-        shell: bash
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
