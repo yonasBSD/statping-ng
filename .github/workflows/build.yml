@@ -8,19 +8,6 @@ on:
 #     paths-ignore:
 #       - "**.md"
 
-env:
-  is_stable: |
-    github.event_name == 'push'
-    && github.ref == 'refs/heads/stable'
-  is_unstable: |
-    github.event_name == 'push'
-    && github.ref == 'refs/heads/unstable'
-  # this is an alias for is-stable || is-unstable
-  is_release: |
-    github.event_name == 'push'
-    && (github.ref == 'refs/heads/stable'
-    || github.ref == 'refs/heads/unstable')
-
 jobs:
   data:
     # this job collects general variables and inputs for later use.
@@ -29,11 +16,20 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      is_release: ${{ steps.states.outputs.is_release }}
+      is_stable: ${{ steps.states.outputs.is_stable }}
+      is_unstable: ${{ steps.states.outputs.is_unstable }}
     steps:
       - uses: actions/checkout@v2
       - name: get version
         id: version
         run: echo "::set-output name=version::$(cat version.txt)"
+      - name: get stable/unstable states
+        id: states
+        run: |
+          echo "::set-output name=is_release::${{ github.event_name == 'push' && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/unstable') }}"
+          echo "::set-output name=is_stable::${{ github.event_name == 'push' && github.ref == 'refs/heads/stable' }}"
+          echo "::set-output name=is_unstable::${{ github.event_name == 'push' && github.ref == 'refs/heads/unstable' }}"
   frontend:
     runs-on: ubuntu-latest
     needs: data
@@ -474,14 +470,9 @@ jobs:
 
   # all other release jobs should be based on this
   release-precondition-check:
-    # only run release jobs on push to stable/unstable
-    # sadly, you can't use ${{ env.is_release }} here
-    if: |
-      success() && (
-      github.event_name == 'push'
-      && (github.ref == 'refs/heads/stable'
-      || github.ref == 'refs/heads/unstable')
-      )
+    # only run release jobs on push to stable/unstable.
+    # yes, we need to explicitly compare to 'true' here since it's a string
+    if: ${{ success() && needs.data.outputs.is_release == 'true' }}
     needs: [ data, build, test-postman-sqlite, test-postman-mysql, test-postman-postgres ]
     runs-on: ubuntu-latest
     steps:
@@ -510,7 +501,7 @@ jobs:
           VERSION: ${{ needs.data.outputs.version }}
         with:
           # add "dev-" prefix for unstable releases
-          tag_name: ${{ env.is_unstable && 'dev-' || '' }}v${{ needs.data.outputs.version }}
+          tag_name: ${{ needs.data.outputs.is_unstable && 'dev-' || '' }}v${{ needs.data.outputs.version }}
           draft: true
           prerelease: true
           files: files/statping-*
