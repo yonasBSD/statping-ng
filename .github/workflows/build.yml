@@ -156,9 +156,9 @@ jobs:
           dest: build
           prefix: statping
           targets: ${{ matrix.platform }}/${{ matrix.arch }}
-          # TODO v and x were true for dev workflow but false for stable/unstable. what do they do?
-          v: false
-          x: false
+          # v and x enable additional debug output
+          v: true
+          x: true
           pkg: cmd
           buildmode: pie
           tags: ${{ env.XGO_TAGS }}
