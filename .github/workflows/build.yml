@@ -86,7 +86,7 @@ jobs:
           rm -rf source.tar.gz
 
   build:
-    needs: [ frontend, test-postman-sqlite, test-postman-mysql, test-postman-postgres ]
+    needs: frontend
     runs-on: ubuntu-latest
     strategy:
       matrix:
