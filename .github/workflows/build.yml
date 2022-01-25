@@ -93,8 +93,9 @@ jobs:
         platform: [ linux ]
         arch: [ 386, amd64, arm-7, arm-6, arm64 ]
         include:
-          - platform: darwin
-            arch: 386
+          # TODO darwin/386 is broken, ignore for now
+          # - platform: darwin
+          #   arch: 386
           - platform: darwin
             arch: amd64
           - platform: windows
@@ -184,20 +185,8 @@ jobs:
           rm -rf statping.exe
           echo "compressed=statping-windows-${{ matrix.arch }}.zip" >> $GITHUB_ENV
 
-      # TODO combine these steps?
-      - name: Compress Darwin 32bit Builds
-        if: matrix.platform == 'darwin' && matrix.arch == '386'
-        run: |
-          cd build
-          ls >> $GITHUB_ENV
-      #          mv statping-darwin-10.6-${{ matrix.arch }} statping
-      #          chmod +x statping
-      #          tar -czvf statping-darwin-${{ matrix.arch }}.tar.gz *
-      #          rm -rf statping
-      #          echo "compressed=statping-darwin-${{ matrix.arch }}.tar.gz" >> $GITHUB_ENV
-
-      - name: Compress Darwin 64bit Builds
-        if: matrix.platform == 'darwin' && matrix.arch == 'amd64'
+      - name: Compress Darwin Builds
+        if: matrix.platform == 'darwin'
         run: |
           cd build
           mv statping-darwin-10.12-${{ matrix.arch }} statping
@@ -205,8 +194,6 @@ jobs:
           tar -czvf statping-darwin-${{ matrix.arch }}.tar.gz statping
           rm -rf statping
           echo "compressed=statping-darwin-${{ matrix.arch }}.tar.gz" >> $GITHUB_ENV
-
-        # TODO darwin arm64?
 
       - name: Upload Compiled Statping Binary
         uses: actions/upload-artifact@v1
