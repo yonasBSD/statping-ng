@@ -27,7 +27,7 @@ RUN . sassc/script/bootstrap && make -C sassc -j4
 
 WORKDIR /go/src/github.com/statping-ng/statping-ng
 ADD go.mod go.sum ./
-# RUN go mod download
+RUN go mod download
 ENV GO111MODULE on
 ENV CGO_ENABLED 1
 COPY . .
