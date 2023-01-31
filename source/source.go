@@ -30,6 +30,7 @@ var (
 		"scss/mobile.scss",
 		"scss/variables.scss",
 		"robots.txt",
+		"base.gohtml",
 	}
 )
 
@@ -174,8 +175,8 @@ func DeleteAllAssets(folder string) error {
 // CopyAllToPublic will copy all the files in a rice box into a local folder
 func CopyAllToPublic(box *rice.Box) error {
 	exclude := map[string]bool{
-		"base.gohtml": true,
-		"index.html":  true,
+		// "base.gohtml": true,
+		"index.html": true,
 	}
 
 	return box.Walk("/", func(path string, info os.FileInfo, err error) error {
