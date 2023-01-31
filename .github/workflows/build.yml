@@ -139,7 +139,7 @@ jobs:
         shell: bash
 
       - name: Build ${{ matrix.platform }}/${{ matrix.arch }}
-        uses: crazy-max/ghaction-xgo@v1
+        uses: crazy-max/ghaction-xgo@v2
         env:
           VERSION: ${{ needs.data.outputs.version }}
           COMMIT: ${{ github.sha }}
