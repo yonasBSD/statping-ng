@@ -20,7 +20,7 @@ jobs:
       is_stable: ${{ steps.states.outputs.is_stable }}
       is_unstable: ${{ steps.states.outputs.is_unstable }}
       go_version: 1.18.x
-      node_version: 12.18.2
+      node_version: 16.14.0
     steps:
       - uses: actions/checkout@v2
       - name: get version
