@@ -466,6 +466,18 @@ jobs:
           timeoutRequest: 30000
           delayRequest: 600
 
+  docker-build:
+    needs: [ data ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: jemand771/docker-build-action@main
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          push_strategy: artifact
+          platforms: linux/amd64
+
   # TODO everything from here on is stable/unstable release only
 
   # all other release jobs should be based on this
@@ -473,88 +485,12 @@ jobs:
     # only run release jobs on push to stable/unstable.
     # yes, we need to explicitly compare to 'true' here since it's a string
     if: ${{ success() && needs.data.outputs.is_release == 'true' }}
-    needs: [ data, build, test-postman-sqlite, test-postman-mysql, test-postman-postgres ]
+    needs: [ data, build, test-postman-sqlite, test-postman-mysql, test-postman-postgres, docker-build ]
     runs-on: ubuntu-latest
     steps:
       - name: dummy operation
         run: |
           :
 
-  github-release:
-    runs-on: ubuntu-latest
-    needs: [ data, release-precondition-check ]
-    steps:
-      # TODO read version somewhere *once* and use output globally
-      - name: Download job artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: downloads
-      - name: Accumulate files
-        run: |
-          mkdir files
-          find downloads -type f -exec cp {} files \;
-      - name: Upload Releases
-        id: upload-assets
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ needs.data.outputs.version }}
-        with:
-          # add "dev-" prefix for unstable releases
-          tag_name: ${{ needs.data.outputs.is_unstable && 'dev-' || '' }}v${{ needs.data.outputs.version }}
-          draft: true
-          prerelease: true
-          files: files/statping-*
-
-  docker-release:
-    needs: [ data, release-precondition-check ]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Statping Repo
-        uses: actions/checkout@v2
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        id: buildx
-        with:
-          install: true
-
-        # TODO the cache keys for stable/unstable were different here, but that doesn't really matter
-        # TODO use docker metadata action instead of this (don't refer to makefile for docker commands at all)
-        # TODO consider creating builds for dev (not really needed?), if so: not multiarch
-        # TODO build docker image before releasing (in parallel to build), use same cache here and there.
-        #      --> don't push from build step so everything can be released (somewhat) simultaneously
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        id: buildx-docker-master
-        with:
-          path: /tmp/.buildx-cache
-          key: buildx-docker-master
-          restore-keys: |
-            buildx-docker-master
-
-      # TODO duplicate login why?
-      - name: Docker Login
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
-
-      # TODO get rid of the base image
-      - name: Docker Build :base
-        run: make buildx-base
-
-      - name: Docker Login
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
-
-        # TODO this should be :latest in stable
-        # TODO do we even want a "static" :dev tag?
-      - name: Docker Build :dev
-        run: make buildx-dev
+      # TODO push docker image(s) and release artifacts
+      # TODO bring back dockerhub image
