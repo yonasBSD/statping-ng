@@ -32,7 +32,8 @@ ENV GO111MODULE on
 ENV CGO_ENABLED 1
 COPY . .
 COPY --from=frontend /statping/dist/ ./source/dist/
-RUN make clean generate embed
+RUN go install github.com/GeertJohan/go.rice/rice@latest
+RUN make clean embed
 RUN go build -a -ldflags "-s -w -extldflags -static -X main.VERSION=${VERSION} -X main.COMMIT=${COMMIT}" -o statping --tags "netgo linux" ./cmd
 RUN chmod a+x statping && mv statping /go/bin/statping
 # /go/bin/statping - statping binary
