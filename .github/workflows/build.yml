@@ -157,6 +157,8 @@ jobs:
           tags: ${{ env.XGO_TAGS }}
           ldflags: -s -w -X main.VERSION=${{ needs.data.outputs.version }} -X main.COMMIT=${{ env.COMMIT }} ${{ env.BUILD_FLAGS }}
 
+      - run: ls -la
+
       - name: Compress Linux Builds
         if: matrix.platform == 'linux'
         run: |
