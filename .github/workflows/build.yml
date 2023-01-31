@@ -40,38 +40,25 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: ${{ needs.data.outputs.go_version }}
+      - name: Install rice
+        run: go install github.com/GeertJohan/go.rice/rice@latest
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ needs.data.outputs.node_version }}
-
-      - name: Add go/bin to path
-        run: |
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-        shell: bash
-
-      - name: Install Global Dependencies
-        run: npm install -g yarn sass cross-env mjml
-
       - name: Download Frontend Dependencies
         working-directory: ./frontend
         run: yarn
-
-      - name: Download Go mods
-        run: |
-          go mod download
-          go mod verify
-          make test-deps
-
       - name: Build Frontend Statping
-        env:
-          VERSION: ${{ needs.data.outputs.version }}
-          COMMIT: ${{ github.sha }}
-          MJML_APP: ${{ secrets.MJML_APP }}
-          MJML_PRIVATE: ${{ secrets.MJML_PRIVATE }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: make clean generate compile
-
+        working-directory: ./frontend
+        run: yarn build
+      - name: Copy built frontend
+        run: |
+          cp -r frontend/dist source/
+          cp -r frontend/src/assets/scss source/dist/
+          cp frontend/public/robots.txt source/dist/
+      - name: Build rice-box.go
+        run: rice embed-go
+        working-directory: source
       - name: Upload Compiled Frontend (rice-box.go)
         uses: actions/upload-artifact@v1
         with:
