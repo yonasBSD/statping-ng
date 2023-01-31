@@ -10,7 +10,7 @@ RUN yarn build && yarn cache clean
 
 # Statping Golang BACKEND building from source
 # Creates "/go/bin/statping" and "/usr/local/bin/sass" for copying
-FROM golang:1.17-alpine AS backend
+FROM golang:1.19-alpine AS backend
 LABEL maintainer="Statping-NG (https://github.com/statping-ng)"
 ARG VERSION
 ARG COMMIT
@@ -27,14 +27,9 @@ RUN . sassc/script/bootstrap && make -C sassc -j4
 
 WORKDIR /go/src/github.com/statping-ng/statping-ng
 ADD go.mod go.sum ./
-RUN go mod download
+# RUN go mod download
 ENV GO111MODULE on
 ENV CGO_ENABLED 1
-RUN go get github.com/stretchr/testify/assert && \
-    go get github.com/stretchr/testify/require && \
-	go get github.com/GeertJohan/go.rice/rice && \
-	go get github.com/cortesi/modd/cmd/modd && \
-	go get github.com/crazy-max/xgo
 COPY . .
 COPY --from=frontend /statping/dist/ ./source/dist/
 RUN make clean generate embed
