@@ -462,7 +462,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           push_strategy: artifact
           platforms: linux/amd64
-        # TODO pass version and commit as docker build args
+          args:
+            COMMIT=${{ github.sha }}
+            VERSION=${{ needs.data.outputs.version }}
 
   # all other release jobs should be based on this
   release:
