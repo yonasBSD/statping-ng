@@ -173,7 +173,7 @@ jobs:
         if: matrix.platform == 'windows'
         run: |
           cd build
-          mv statping-windows-4.0-${{ matrix.arch }}.exe statping.exe
+          mv statping-windows-${{ matrix.arch }}.exe statping.exe
           chmod +x statping.exe
           zip statping-windows-${{ matrix.arch }}.zip statping.exe
           rm -rf statping.exe
@@ -183,7 +183,7 @@ jobs:
         if: matrix.platform == 'darwin'
         run: |
           cd build
-          mv statping-darwin-10.12-${{ matrix.arch }} statping
+          mv statping-darwin-${{ matrix.arch }} statping
           chmod +x statping
           tar -czvf statping-darwin-${{ matrix.arch }}.tar.gz statping
           rm -rf statping
