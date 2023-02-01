@@ -375,7 +375,6 @@ jobs:
           path: ./source
 
       - name: Install Statping
-        env:
         run: |
           make build
           chmod +x statping
