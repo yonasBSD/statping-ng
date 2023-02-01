@@ -16,7 +16,7 @@ ARG VERSION
 ARG COMMIT
 ARG BUILDPLATFORM
 ARG TARGETARCH
-RUN apk add --update --no-cache libstdc++ gcc g++ git autoconf \
+RUN apk add --update --no-cache libstdc++ gcc g++ make git autoconf \
     libtool ca-certificates linux-headers wget curl jq && \
     update-ca-certificates
 
