@@ -21,7 +21,10 @@ jobs:
       node_version: 16.14.0
     steps:
       - uses: actions/checkout@v2
-      - name: get stable/unstable states
+      - name: fetch tags
+        # check on https://github.com/actions/checkout/pull/579 occasionally if actions/checkout can do this natively yet
+        run: git fetch --tags
+      - name: get version information
         id: versions
         run: |
           TAG=$(git describe --tags)
