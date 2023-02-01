@@ -16,7 +16,7 @@ ARG VERSION
 ARG COMMIT
 ARG BUILDPLATFORM
 ARG TARGETARCH
-RUN apk add --update --no-cache libstdc++ gcc g++ make git autoconf \
+RUN apk add --update --no-cache libstdc++ gcc g++ git autoconf \
     libtool ca-certificates linux-headers wget curl jq && \
     update-ca-certificates
 
@@ -33,7 +33,7 @@ ENV CGO_ENABLED 1
 COPY . .
 COPY --from=frontend /statping/dist/ ./source/dist/
 RUN go install github.com/GeertJohan/go.rice/rice@latest
-RUN make clean embed
+RUN cd source && rice embed-go
 RUN go build -a -ldflags "-s -w -extldflags -static -X main.VERSION=${VERSION} -X main.COMMIT=${COMMIT}" -o statping --tags "netgo linux" ./cmd
 RUN chmod a+x statping && mv statping /go/bin/statping
 # /go/bin/statping - statping binary
