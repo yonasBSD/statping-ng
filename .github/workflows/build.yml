@@ -20,10 +20,10 @@ jobs:
       go_version: 1.18.x
       node_version: 16.14.0
     steps:
-      - uses: actions/checkout@v2
-      - name: fetch tags
-        # check on https://github.com/actions/checkout/pull/579 occasionally if actions/checkout can do this natively yet
-        run: git fetch --tags
+      - uses: actions/checkout@v3
+        with:
+          # check on https://github.com/actions/checkout/pull/579 occasionally if actions/checkout can do this natively yet
+          fetch-depth: 0
       - name: get version information
         id: versions
         run: |
