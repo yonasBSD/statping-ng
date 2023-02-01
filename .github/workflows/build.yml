@@ -34,7 +34,7 @@ jobs:
             echo "is_release=false" >> $GITHUB_OUTPUT
           fi
           # this will be v1.2.3 for on-tag builds and v1.2.3-numberofcommits-sha for off-tag builds
-          echo "version=$LAST_TAG" >> $GITHUB_OUTPUT
+          echo "version=$TAG" >> $GITHUB_OUTPUT
         shell: bash
       - name: show data results
         run: |
