@@ -15,23 +15,24 @@ jobs:
     # also, the name is intentionally short to make later references shorter.
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      is_release: ${{ steps.states.outputs.is_release }}
-      is_stable: ${{ steps.states.outputs.is_stable }}
-      is_unstable: ${{ steps.states.outputs.is_unstable }}
+      is_release: ${{ steps.versions.outputs.is_release }}
+      version: ${{ steps.versions.outputs.version }}
       go_version: 1.18.x
       node_version: 16.14.0
     steps:
       - uses: actions/checkout@v2
-      - name: get version
-        id: version
-        run: echo "::set-output name=version::$(cat version.txt)"
       - name: get stable/unstable states
-        id: states
+        id: versions
         run: |
-          echo "::set-output name=is_release::${{ github.event_name == 'push' && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/unstable') }}"
-          echo "::set-output name=is_stable::${{ github.event_name == 'push' && github.ref == 'refs/heads/stable' }}"
-          echo "::set-output name=is_unstable::${{ github.event_name == 'push' && github.ref == 'refs/heads/unstable' }}"
+          TAG=$(git describe --tags)
+          if [ "${{ github.ref }}" = "refs/heads/$TAG"]; then
+            echo "is_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+          # this will be v1.2.3 for on-tag builds and v1.2.3-numberofcommits-sha for off-tag builds
+          echo "version=$LAST_TAG" >> $GITHUB_OUTPUT
+        shell: bash
   frontend:
     runs-on: ubuntu-latest
     needs: data
@@ -140,9 +141,6 @@ jobs:
 
       - name: Build ${{ matrix.platform }}/${{ matrix.arch }}
         uses: crazy-max/ghaction-xgo@v2
-        env:
-          VERSION: ${{ needs.data.outputs.version }}
-          COMMIT: ${{ github.sha }}
         with:
           xgo_version: latest
           go_version: ${{ needs.data.outputs.go_version }}
@@ -155,7 +153,7 @@ jobs:
           pkg: cmd
           buildmode: pie
           tags: ${{ env.XGO_TAGS }}
-          ldflags: -s -w -X main.VERSION=${{ needs.data.outputs.version }} -X main.COMMIT=${{ env.COMMIT }} ${{ env.BUILD_FLAGS }}
+          ldflags: -s -w -X main.VERSION=${{ needs.data.outputs.version }} -X main.COMMIT=${{ github.sha }} ${{ env.BUILD_FLAGS }}
 
       - run: ls -la build
 
@@ -253,9 +251,6 @@ jobs:
           path: ./source
 
       - name: Install Statping
-        env:
-          VERSION: ${{ needs.data.outputs.version }}
-          COMMIT: ${{ github.sha }}
         run: |
           make build certs
           chmod +x statping
@@ -330,9 +325,6 @@ jobs:
           path: ./source
 
       - name: Install Statping
-        env:
-          VERSION: ${{ needs.data.outputs.version }}
-          COMMIT: ${{ github.sha }}
         run: |
           make build
           chmod +x statping
@@ -384,10 +376,6 @@ jobs:
 
       - name: Install Statping
         env:
-          VERSION: ${{ needs.data.outputs.version }}
-          COMMIT: ${{ github.sha }}
-          MJML_APP: ${{ secrets.MJML_APP }}
-          MJML_PRIVATE: ${{ secrets.MJML_PRIVATE }}
         run: |
           make build
           chmod +x statping
@@ -439,9 +427,6 @@ jobs:
           path: ./source
 
       - name: Install Statping
-        env:
-          VERSION: ${{ needs.data.outputs.version }}
-          COMMIT: ${{ github.sha }}
         run: |
           make build
           chmod +x statping
@@ -470,11 +455,10 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           push_strategy: artifact
           platforms: linux/amd64
-
-  # TODO everything from here on is stable/unstable release only
+        # TODO pass version and commit as docker build args
 
   # all other release jobs should be based on this
-  release-precondition-check:
+  release:
     # only run release jobs on push to stable/unstable.
     # yes, we need to explicitly compare to 'true' here since it's a string
     if: ${{ success() && needs.data.outputs.is_release == 'true' }}
