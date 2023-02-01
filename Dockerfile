@@ -34,7 +34,7 @@ COPY . .
 COPY --from=frontend /statping/dist/ ./source/dist/
 RUN go install github.com/GeertJohan/go.rice/rice@latest
 RUN cd source && rice embed-go
-RUN go build -a -ldflags "-s -w -extldflags -static -X "main.VERSION=${VERSION}" -X main.COMMIT=${COMMIT}" -o statping --tags "netgo linux" ./cmd
+RUN go build -a -ldflags "-s -w -extldflags -static -X \"main.VERSION=${VERSION}\" -X main.COMMIT=${COMMIT}" -o statping --tags "netgo linux" ./cmd
 RUN chmod a+x statping && mv statping /go/bin/statping
 # /go/bin/statping - statping binary
 # /root/sassc/bin/sassc - sass binary
