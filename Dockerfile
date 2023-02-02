@@ -10,6 +10,9 @@ RUN yarn build && yarn cache clean
 
 # Statping Golang BACKEND building from source
 # Creates "/go/bin/statping" and "/usr/local/bin/sass" for copying
+# TODO something here breaks caching / forces a rebuild each time. fix
+#        * probably the COPY . .
+#        * also, the sass git clone isn't reproducible, we should version-pin that
 FROM golang:1.19-alpine AS backend
 LABEL maintainer="Statping-NG (https://github.com/statping-ng)"
 ARG VERSION
