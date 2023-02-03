@@ -177,7 +177,7 @@ jobs:
       - name: Upload Compiled Statping Binary
         uses: actions/upload-artifact@v1
         with:
-          name: statping-${{ matrix.platform }}-${{ matrix.arch }}
+          name: binaries
           path: ./build
 
   # TODO refactor (and fix) tests
@@ -446,10 +446,23 @@ jobs:
     if: ${{ success() && needs.data.outputs.is_release == 'true' }}
     needs: [ data, build, test-postman-sqlite, test-postman-mysql, test-postman-postgres, docker-build ]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: dummy operation
-        run: |
-          :
+      - uses: actions/download-artifact@v3
+        with:
+          name: binaries
+          path: binaries
+      - uses: actions/create-release@v1
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: binaries/*
+          draft: true
+          generateReleaseNotes: true
+          omitBodyDuringUpdate: true
+          prerelease: ${{ needs.data.outputs.is_prerelease == 'true' && 'true' || ''}}
+          updateOnlyUnreleased: true
 
-      # TODO push docker image(s) and release artifacts
+      # TODO push docker image(s)
       # TODO bring back dockerhub image
