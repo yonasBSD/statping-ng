@@ -33,6 +33,7 @@ ENV CGO_ENABLED 1
 COPY cmd ./cmd
 COPY database ./database
 COPY handlers ./handlers
+COPY notifiers ./notifiers
 COPY source ./source
 COPY types ./types
 COPY utils ./utils
