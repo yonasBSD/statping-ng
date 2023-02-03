@@ -37,6 +37,7 @@ jobs:
             fi
           else
             echo "is_release=false" >> $GITHUB_OUTPUT
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
           fi
           # this will be v1.2.3 for on-tag builds and v1.2.3-numberofcommits-sha for off-tag builds
           echo "version=$TAG" >> $GITHUB_OUTPUT
@@ -45,6 +46,7 @@ jobs:
         run: |
           echo == version summary ==
           echo is_release: ${{ steps.versions.outputs.is_release }}
+          echo is_prerelease: ${{ steps.versions.outputs.is_prerelease }}
           echo version: ${{ steps.versions.outputs.version }}
   frontend:
     runs-on: ubuntu-latest
