@@ -74,23 +74,6 @@ jobs:
           name: static-rice-box
           path: ./source
 
-      - name: Configure AWS credentials for Asset uploads
-        # temporarily disabled
-        if: "false"
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
-
-      - name: Upload Static Assets to S3
-        # temporarily disabled
-        if: "false"
-        run: |
-          tar -czvf source.tar.gz source/
-          aws s3 cp source.tar.gz s3://assets.statping.com/commit/${{ github.sha }}/
-          rm -rf source.tar.gz
-
   build:
     needs: [ data, frontend ]
     runs-on: ubuntu-latest
@@ -117,15 +100,6 @@ jobs:
         with:
           name: static-rice-box
           path: ./source
-
-      - name: Configure AWS credentials for Asset uploads
-        # temporarily disabled
-        if: "false"
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
 
       - name: Set Linux Build Flags
         if: matrix.platform == 'linux'
@@ -200,12 +174,6 @@ jobs:
         with:
           name: statping-${{ matrix.platform }}-${{ matrix.arch }}
           path: ./build
-
-      - name: Upload Compiled Binaries to S3
-        # temporarily disabled
-        if: "false"
-        run: |
-          aws s3 cp build/${{ env.compressed }} s3://assets.statping.com/commit/${{ github.sha }}/
 
   # TODO refactor (and fix) tests
 
