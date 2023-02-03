@@ -441,6 +441,7 @@ jobs:
           args: |
             COMMIT=${{ github.sha }}
             VERSION=${{ needs.data.outputs.version }}
+            BUILDKIT_INLINE_CACHE=true
 
   # all other release jobs should be based on this
   release:
