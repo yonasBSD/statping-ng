@@ -37,7 +37,7 @@ jobs:
             fi
           else
             echo "is_release=false" >> $GITHUB_OUTPUT
-            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
           fi
           # this will be v1.2.3 for on-tag builds and v1.2.3-numberofcommits-sha for off-tag builds
           echo "version=$TAG" >> $GITHUB_OUTPUT
