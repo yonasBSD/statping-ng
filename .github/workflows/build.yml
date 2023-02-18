@@ -456,6 +456,10 @@ jobs:
         with:
           name: binaries
           path: binaries
+      - uses: actions/download-artifact@v3
+        with:
+          name: docker-images
+          path: images
       - uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
@@ -466,6 +470,9 @@ jobs:
           omitBodyDuringUpdate: true
           prerelease: ${{ needs.data.outputs.is_prerelease == 'true' && 'true' || ''}}
           updateOnlyUnreleased: true
-
-      # TODO push docker image(s)
+      - name: import images
+        run: for file in images/*.tar; do docker load < $file; done
+      - run: docker image ls
+      - name: push all images
+        run: for image in $(cat images/docker-images.txt); do echo pushing $image; docker push $image; done
       # TODO bring back dockerhub image
