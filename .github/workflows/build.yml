@@ -445,8 +445,7 @@ jobs:
   # all other release jobs should be based on this
   release:
     # only run release jobs on push to stable/unstable.
-    # yes, we need to explicitly compare to 'true' here since it's a string
-    if: ${{ success() && needs.data.outputs.is_release == 'true' }}
+    if: ${{ success() && fromJSON(needs.data.outputs.is_release) }}
     needs: [ data, build, test-postman-sqlite, test-postman-mysql, test-postman-postgres, docker-build ]
     runs-on: ubuntu-latest
     permissions:
@@ -474,7 +473,7 @@ jobs:
           draft: true
           generateReleaseNotes: true
           omitBodyDuringUpdate: true
-          prerelease: ${{ needs.data.outputs.is_prerelease == 'true' && 'true' || ''}}
+          prerelease: ${{ fromJSON(needs.data.outputs.is_prerelease) && 'true' || 'false'}}
           updateOnlyUnreleased: true
       - name: import images
         run: for file in images/*.tar; do docker load < $file; done
