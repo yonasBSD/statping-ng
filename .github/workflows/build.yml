@@ -29,15 +29,15 @@ jobs:
         id: versions
         run: |
           STABLE_TAG=$(git describe --tags --exclude '*-*')
-          TAG=$(git describe --tags)
+          BETA_TAG=$(git describe --tags --match '*-*')
           if [ "${{ github.ref }}" = "refs/tags/$STABLE_TAG" ]; then
             echo "is_release=true" >> $GITHUB_OUTPUT
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
             echo "version=$STABLE_TAG" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/tags/$TAG" ]; then
+          elif [ "${{ github.ref }}" = "refs/tags/BETA_TAG" ]; then
             echo "is_release=true" >> $GITHUB_OUTPUT
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
-            echo "version=$TAG" >> $GITHUB_OUTPUT
+            echo "version=BETA_TAG" >> $GITHUB_OUTPUT
           else
             echo "is_release=false" >> $GITHUB_OUTPUT
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
