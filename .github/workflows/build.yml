@@ -14,19 +14,19 @@ jobs:
     # also, the name is intentionally short to make later references shorter.
     runs-on: ubuntu-latest
     outputs:
-      is_release: ${{ steps.versions.outputs.is_release }}
-      is_prerelease: ${{ steps.versions.outputs.is_prerelease }}
+      is_release: ${{ steps.statping-versions.outputs.is_release }}
+      is_prerelease: ${{ steps.statping-versions.outputs.is_prerelease }}
       # this will be v1.2.3 for on-tag builds and v1.2.3-numberofcommits-sha for off-tag builds
-      version: ${{ steps.versions.outputs.version }}
-      go_version: 1.18.x
-      node_version: 16.14.0
+      version: ${{ steps.statping-versions.outputs.version }}
+      go_version: ${{ steps.tool-versions.outputs.go_version }}
+      node_version: ${{ steps.tool-versions.outputs.node_version }}
     steps:
       - uses: actions/checkout@v3
         with:
           # check on https://github.com/actions/checkout/pull/579 occasionally if actions/checkout can do this natively yet
           fetch-depth: 0
-      - name: get version information
-        id: versions
+      - name: get statping version information
+        id: statping-versions
         run: |
           STABLE_TAG=$(git describe --tags --exclude '*-*')
           BETA_TAG=$(git describe --tags --match '*-*')
@@ -46,13 +46,24 @@ jobs:
             echo "version=$STABLE_TAG" >> $GITHUB_OUTPUT
           fi
         shell: bash
+      - name: get statping version information
+        id: statping-versions
+        run: |
+          echo "go_version=1.18.x" >> $GITHUB_OUTPUT
+          echo "node_version=16.14.0" >> $GITHUB_OUTPUT
+        shell: bash
       - name: show data results
         run: |
-          echo == version summary ==
+          echo == tools versions ==
+          echo go_version: ${{ steps.tool-versions.outputs.go_version }}
+          echo node_version: ${{ steps.tool-versions.outputs.node_version }}
+          echo == matched tags ==
           echo stable_tag: ${{ steps.versions.outputs.stable_tag }}
           echo beta_tag: ${{ steps.versions.outputs.beta_tag }}
+          echo == release information ==
           echo is_release: ${{ steps.versions.outputs.is_release }}
           echo is_prerelease: ${{ steps.versions.outputs.is_prerelease }}
+          echo == statping version ==
           echo version: ${{ steps.versions.outputs.version }}
   frontend:
     runs-on: ubuntu-latest
