@@ -30,6 +30,8 @@ jobs:
         run: |
           STABLE_TAG=$(git describe --tags --exclude '*-*')
           BETA_TAG=$(git describe --tags --match '*-*')
+          echo "stable_tag=$STABLE_TAG" >> $GITHUB_OUTPUT
+          echo "beta_tag=$BETA_TAG" >> $GITHUB_OUTPUT
           if [ "${{ github.ref }}" = "refs/tags/$STABLE_TAG" ]; then
             echo "is_release=true" >> $GITHUB_OUTPUT
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
@@ -37,7 +39,7 @@ jobs:
           elif [ "${{ github.ref }}" = "refs/tags/BETA_TAG" ]; then
             echo "is_release=true" >> $GITHUB_OUTPUT
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
-            echo "version=BETA_TAG" >> $GITHUB_OUTPUT
+            echo "version=$BETA_TAG" >> $GITHUB_OUTPUT
           else
             echo "is_release=false" >> $GITHUB_OUTPUT
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
@@ -47,6 +49,8 @@ jobs:
       - name: show data results
         run: |
           echo == version summary ==
+          echo stable_tag: ${{ steps.versions.outputs.stable_tag }}
+          echo beta_tag: ${{ steps.versions.outputs.beta_tag }}
           echo is_release: ${{ steps.versions.outputs.is_release }}
           echo is_prerelease: ${{ steps.versions.outputs.is_prerelease }}
           echo version: ${{ steps.versions.outputs.version }}
