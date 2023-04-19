@@ -46,7 +46,7 @@ jobs:
             echo "version=$STABLE_TAG" >> $GITHUB_OUTPUT
           fi
         shell: bash
-      - name: get statping version information
+      - name: get go/node version information
         id: tool-versions
         run: |
           echo "go_version=1.20.x" >> $GITHUB_OUTPUT
