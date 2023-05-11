@@ -10,7 +10,7 @@ RUN yarn build && yarn cache clean
 
 # Statping Golang BACKEND building from source
 # Creates "/go/bin/statping" and "/usr/local/bin/sass" for copying
-FROM golang:1.17-alpine AS backend
+FROM golang:1.20-alpine AS backend
 LABEL maintainer="Statping-NG (https://github.com/statping-ng)"
 ARG VERSION
 ARG COMMIT
@@ -21,7 +21,7 @@ RUN apk add --update --no-cache libstdc++ gcc g++ make git autoconf \
     update-ca-certificates
 
 WORKDIR /root
-RUN git clone https://github.com/sass/sassc.git
+RUN git clone --depth 1 --branch 3.6.2 https://github.com/sass/sassc.git
 RUN . sassc/script/bootstrap && make -C sassc -j4
 # sassc binary: /root/sassc/bin/sassc
 
@@ -30,15 +30,17 @@ ADD go.mod go.sum ./
 RUN go mod download
 ENV GO111MODULE on
 ENV CGO_ENABLED 1
-RUN go get github.com/stretchr/testify/assert && \
-    go get github.com/stretchr/testify/require && \
-	go get github.com/GeertJohan/go.rice/rice && \
-	go get github.com/cortesi/modd/cmd/modd && \
-	go get github.com/crazy-max/xgo
-COPY . .
+COPY cmd ./cmd
+COPY database ./database
+COPY handlers ./handlers
+COPY notifiers ./notifiers
+COPY source ./source
+COPY types ./types
+COPY utils ./utils
 COPY --from=frontend /statping/dist/ ./source/dist/
-RUN make clean generate embed
-RUN go build -a -ldflags "-s -w -extldflags -static -X main.VERSION=${VERSION} -X main.COMMIT=${COMMIT}" -o statping --tags "netgo linux" ./cmd
+RUN go install github.com/GeertJohan/go.rice/rice@latest
+RUN cd source && rice embed-go
+RUN go build -a -ldflags "-s -w -extldflags -static -X main.VERSION=$VERSION -X main.COMMIT=$COMMIT" -o statping --tags "netgo linux" ./cmd
 RUN chmod a+x statping && mv statping /go/bin/statping
 # /go/bin/statping - statping binary
 # /root/sassc/bin/sassc - sass binary
