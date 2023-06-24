@@ -452,7 +452,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ github.token }}
           push_strategy: artifact
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm/v7, linux/arm/v6, linux/arm64
           args: |
             COMMIT=${{ github.sha }}
             VERSION=${{ needs.data.outputs.version }}
