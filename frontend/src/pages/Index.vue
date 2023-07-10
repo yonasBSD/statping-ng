@@ -19,7 +19,10 @@
       <div class="col-12 full-col-12">
           <div v-for="service in services_no_group" v-bind:key="service.id" class="list-group online_list mb-4">
               <div class="list-group-item list-group-item-action">
-                  <router-link class="no-decoration font-3" :to="serviceLink(service)">{{service.name}}</router-link>
+                  <router-link class="no-decoration font-3" :to="serviceLink(service)">
+                    {{service.name}}
+                    <MessagesIcon :messages="service.messages"/>
+                  </router-link>
                   <span class="badge float-right" :class="{'bg-success': service.online, 'bg-danger': !service.online }">{{service.online ? "ONLINE" : "OFFLINE"}}</span>
                   <GroupServiceFailures :service="service"/>
                   <IncidentsBlock :service="service"/>
@@ -47,6 +50,7 @@ const MessageBlock = () => import(/* webpackChunkName: "index" */ '@/components/
 const ServiceBlock = () => import(/* webpackChunkName: "index" */ '@/components/Service/ServiceBlock')
 const GroupServiceFailures = () => import(/* webpackChunkName: "index" */ '@/components/Index/GroupServiceFailures')
 const IncidentsBlock = () => import(/* webpackChunkName: "index" */ '@/components/Index/IncidentsBlock')
+const MessagesIcon = () => import(/* webpackChunkName: "index" */ '@/components/Index/MessagesIcon')
 
 export default {
     name: 'Index',
@@ -55,6 +59,7 @@ export default {
       GroupServiceFailures,
       ServiceBlock,
       MessageBlock,
+      MessagesIcon,
       Group,
       Header
     },
