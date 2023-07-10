@@ -106,11 +106,10 @@ jobs:
         platform: [ linux ]
         arch: [ 386, amd64, arm-7, arm-6, arm64 ]
         include:
-          # TODO darwin/386 is broken, ignore for now
-          # - platform: darwin
-          #   arch: 386
           - platform: darwin
             arch: amd64
+          - platform: darwin
+            arch: arm64
           - platform: windows
             arch: amd64
           - platform: windows
@@ -453,7 +452,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ github.token }}
           push_strategy: artifact
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm/v7, linux/arm/v6, linux/arm64
           args: |
             COMMIT=${{ github.sha }}
             VERSION=${{ needs.data.outputs.version }}
