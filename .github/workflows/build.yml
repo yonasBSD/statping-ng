@@ -467,7 +467,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: binaries-*
+          pattern: binaries-*/*
           path: binaries
       - uses: ncipollo/release-action@v1
         with:
