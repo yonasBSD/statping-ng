@@ -469,11 +469,13 @@ jobs:
         with:
           pattern: binaries-*/*
           path: binaries
+      - name: list files
+        run: find .
       - uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: binaries/*
+          artifacts: binaries-*/*
           draft: true
           generateReleaseNotes: true
           omitBodyDuringUpdate: true
